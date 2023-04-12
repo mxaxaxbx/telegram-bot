@@ -22,6 +22,17 @@ def tel_send_message(chat_id, text):
    
     r = requests.post(url,json=payload)
     return r
+
+def tel_send_image(chat_id):
+    url = f'https://api.telegram.org/bot{TOKEN}/sendPhoto'
+    payload = {
+        'chat_id': chat_id,
+        'photo': "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-NkWPQU3-6dvelLDoZZ47CR_0iOnZvmI_WrCH1FrkBw&s",
+        'caption': "This is a sample image"
+    }
+ 
+    r = requests.post(url, json=payload)
+    return r
  
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -31,6 +42,8 @@ def index():
         chat_id,txt = parse_message(msg)
         if txt == "hi":
             tel_send_message(chat_id,"Hello!!")
+        elif txt == "image":
+            tel_send_image(chat_id)
         else:
             tel_send_message(chat_id,'from webhook')
        
