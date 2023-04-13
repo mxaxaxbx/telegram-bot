@@ -1,4 +1,5 @@
 from typing import NamedTuple, Text, List
+from PIL import Image
 import os
 
 API_BASE = os.getenv("API_BASE", "https://framex-dev.wadrid.net/api/")
@@ -67,3 +68,22 @@ def bisect(n, mapper, tester):
             left = mid
 
     return mapper(right)
+
+class Frame:
+    """
+    Wrapper around frame data to help drawing it on the screen
+    """
+
+    def __init__(self, data):
+        self.data = data
+        self.image = None
+
+    def blit(self, disp):
+        if not self.image:
+            pil_img = Image.open(io.BytesIO(self.data))
+            pil_img.thumbnail(DISPLAY_SIZE)
+            buf = pil_img.tobytes()
+            size = pil_img.width, pil_img.height
+            self.image = 'pygame.image.frombuffer(buf, size, "RGB")'
+
+        disp.blit(self.image, (0, 0))
