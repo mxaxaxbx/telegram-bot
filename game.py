@@ -120,3 +120,93 @@ class FrameX:
         r.raise_for_status()
         return r.content
 
+
+class FrameXBisector:
+    """
+    Helps managing the display of images from the launch
+    """
+
+    BASE_URL = API_BASE
+
+    def __init__(self, name):
+        self.api = FrameX()
+        self.video = self.api.video(name)
+        self._index = 0
+        self.image = None
+
+    @property
+    def index(self):
+        return self._index
+
+    @index.setter
+    def index(self, v):
+        """
+        When a new index is written, download the new frame
+        """
+
+        self._index = v
+        self.image = Frame(self.api.video_frame(self.video.name, v))
+
+    @property
+    def count(self):
+        return self.video.frames
+
+    def blit(self, disp):
+        """
+        Draws the current picture.
+        """
+
+        self.image.blit(disp)
+
+
+def confirm(title):
+    """
+    Asks a yes/no question to the user
+    """
+
+    return  f"{title} - did the rocket launch yet?"
+
+
+def main():
+    """
+    Runs a bisection algorithm on the frames of the video, the goal is
+    to figure at which exact frame the rocket takes off.
+
+    Images are displayed using pygame, but the interactivity happens in
+    the terminal as it is much easier to do.
+    """
+
+    # pygame.init()
+
+    bisector = FrameXBisector(VIDEO_NAME)
+    # disp = pygame.display.set_mode(DISPLAY_SIZE)
+
+    def mapper(n):
+        """
+        In that case there is no need to map (or rather, the mapping
+        is done visually by the user)
+        """
+
+        return n
+
+    def tester(n):
+        """
+        Displays the current candidate to the user and asks them to
+        check if they see wildfire damages.
+        """
+
+        bisector.index = n
+        # disp.fill(BLACK)
+        # bisector.blit(disp)
+        # pygame.display.update()
+
+        return confirm(bisector.index)
+
+    culprit = bisect(bisector.count, mapper, tester)
+    bisector.index = culprit
+
+    print(f"Found! Take-off = {bisector.index}")
+
+    # pygame.quit()
+    exit()
+
