@@ -1,4 +1,6 @@
 from typing import NamedTuple, Text, List
+from urllib.parse import urljoin, quote
+from httpx import Client
 from PIL import Image
 import os
 
@@ -87,3 +89,34 @@ class Frame:
             self.image = 'pygame.image.frombuffer(buf, size, "RGB")'
 
         disp.blit(self.image, (0, 0))
+
+class FrameX:
+    """
+    Utility class to access the FrameX API
+    """
+
+    BASE_URL = API_BASE
+
+    def __init__(self):
+        self.client = Client(timeout=30)
+
+    def video(self, video: Text) -> Video:
+        """
+        Fetches information about a video
+        """
+
+        r = self.client.get(urljoin(self.BASE_URL, f"video/{quote(video)}/"))
+        r.raise_for_status()
+        return Video(**r.json())
+
+    def video_frame(self, video: Text, frame: int) -> bytes:
+        """
+        Fetches the JPEG data of a single frame
+        """
+
+        r = self.client.get(
+            urljoin(self.BASE_URL, f'video/{quote(video)}/frame/{quote(f"{frame}")}/')
+        )
+        r.raise_for_status()
+        return r.content
+
