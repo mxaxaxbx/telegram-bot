@@ -3,6 +3,8 @@ from urllib.parse import urljoin, quote
 from httpx import Client
 from PIL import Image
 import os
+import io
+import base64
 
 API_BASE = os.getenv("API_BASE", "https://framex-dev.wadrid.net/api/")
 VIDEO_NAME = os.getenv(
@@ -80,15 +82,20 @@ class Frame:
         self.data = data
         self.image = None
 
-    def blit(self, disp):
+    def blit(self):
+        # print(self.data)
+        return self.data
         if not self.image:
+            buffer = io.BytesIO()
             pil_img = Image.open(io.BytesIO(self.data))
             pil_img.thumbnail(DISPLAY_SIZE)
-            buf = pil_img.tobytes()
-            size = pil_img.width, pil_img.height
-            self.image = 'pygame.image.frombuffer(buf, size, "RGB")'
-
-        disp.blit(self.image, (0, 0))
+            # buf = pil_img.ba
+            # size = pil_img.width, pil_img.height
+            pil_img.save(buffer, format='PNG')
+            img_str = base64.b64encode(buffer.getvalue())
+            self.image = 'data:image/png;base64,' + img_str.decode('utf-8')
+            # self.image = 'pygame.image.frombuffer(buf, size, "RGB")'
+            return self.image
 
 class FrameX:
     """
@@ -113,6 +120,9 @@ class FrameX:
         """
         Fetches the JPEG data of a single frame
         """
+
+        # print(urljoin(self.BASE_URL, f'video/{quote(video)}/frame/{quote(f"{frame}")}/'))
+        return urljoin(self.BASE_URL, f'video/{quote(video)}/frame/{quote(f"{frame}")}/')
 
         r = self.client.get(
             urljoin(self.BASE_URL, f'video/{quote(video)}/frame/{quote(f"{frame}")}/')
@@ -151,18 +161,19 @@ class FrameXBisector:
     def count(self):
         return self.video.frames
 
-    def blit(self, disp):
+    def blit(self):
         """
         Draws the current picture.
         """
 
-        self.image.blit(disp)
+        return self.image.blit()
 
 
 def confirm(title):
     """
     Asks a yes/no question to the user
     """
+
 
     return  f"{title} - did the rocket launch yet?"
 
